@@ -1,12 +1,9 @@
+//TODO tips as optional cmdline arguments
+// - non-duplex printing: print odd first, then even
+// - page flip ascii images
 @main def main(pagesAmount: Int) =
   val booklet = imposition(pagesAmount)
   println(booklet.iterator.mkString(","))
-
-  val (firstPass, secondPass) =
-    booklet.iterator.grouped(2).partition(tup => tup(0) > tup(1))
-
-  println(firstPass.flatten.mkString(","))
-  println(secondPass.flatten.mkString(","))
 
 def imposition(pagesAmount: Int): IterableOnce[Int] = {
   // [1, 2, 3, 4, 5, 6, 7, 8]           =>
