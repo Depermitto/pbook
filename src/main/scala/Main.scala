@@ -1,20 +1,22 @@
 @main def main(pagesAmount: Int) =
   val booklet = imposition(pagesAmount)
-  val (firstPass, secondPass) = booklet.partitionMap(or => or)
+  println(booklet.iterator.mkString(","))
 
-  println(s"first pass: ${firstPass.flatten.mkString(", ")}")
-  println(s"second pass: ${secondPass.flatten.mkString(", ")}")
+  val (firstPass, secondPass) =
+    booklet.iterator.grouped(2).partition(tup => tup(0) > tup(1))
 
-def imposition(pagesAmount: Int) =
+  println(firstPass.flatten.mkString(","))
+  println(secondPass.flatten.mkString(","))
+
+def imposition(pagesAmount: Int): IterableOnce[Int] = {
   // [1, 2, 3, 4, 5, 6, 7, 8]           =>
   // [(8, 1), (2, 7), (6, 3), (4, 5)]   =>
   // [(8, 1), (6, 3)], [(2, 7), (4, 5)]
-  for i <- 1 to (pagesAmount / 2.0d).ceil.toInt
-  yield
-    val j = pagesAmount - i + 1
-
-    i.compare(j) match
-      case 0 if (pagesAmount - 1) % 4 == 0 => Left(List(i))
-      case 0                               => Right(List(i))
-      case _ if i % 2 == 0                 => Right(List(i, j))
-      case _                               => Left(List(j, i))
+  def sheets(p1: Int, p2: Int): LazyList[Int] =
+    (p1 - p2) match
+      case 1                => LazyList.empty
+      case 0                => p1 #:: LazyList.empty
+      case _ if p1 % 2 == 1 => p2 #:: p1 #:: sheets(p1 + 1, p2 - 1)
+      case _                => p1 #:: p2 #:: sheets(p1 + 1, p2 - 1)
+  sheets(1, pagesAmount)
+}
