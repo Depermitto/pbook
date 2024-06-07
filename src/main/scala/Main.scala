@@ -5,13 +5,13 @@ def usage =
   duplex - non-duplex mode. Formats pages for printers without duplex printing method.
   quiet  - do not show tips for non-duplex mode.
   help   - display this page."""
-def printAndExit(stuff: Any, exitCode: Int) =
+def printAndExit(stuff: Any, exitCode: Int = 0) =
   println(stuff); sys.exit(exitCode)
 
 //TODO tips as optional cmdline arguments
 // - page flip ascii images
 @main def main(args: String*): Unit = {
-  if args.isEmpty || args.head == "--help" then printAndExit(usage, 0)
+  if args.isEmpty || args.head.matches("-(-help|h).*") then printAndExit(usage)
 
   val pagesAmount = args.head.toIntOption.getOrElse {
     printAndExit(s"\"${args.head}\" is not a valid amount of pages", 1)
