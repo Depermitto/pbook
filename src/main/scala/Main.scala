@@ -1,5 +1,10 @@
-def tip = "Tip: "
-def usage = "Usage: pbook number-of-pages [--duplex] [--no-tip] [--help]"
+def tip =
+  "Tip: Put the first row numbers in the print dialog. Print, then flip the pages and print the second time - this time the second row only."
+def usage =
+  """Usage: pbook number-of-pages [-d | --duplex] [-q | --quiet] [-h | --help]
+  duplex - non-duplex mode. Formats pages for printers without duplex printing method.
+  quiet  - do not show tips for non-duplex mode.
+  help   - display this page."""
 def printAndExit(stuff: Any, exitCode: Int) =
   println(stuff); sys.exit(exitCode)
 
@@ -17,9 +22,9 @@ def printAndExit(stuff: Any, exitCode: Int) =
   var duplexAvailable = false
 
   args.drop(1).foreach {
-    case "--duplex" => duplexAvailable = true
-    case "--no-tip" => showTip = false
-    case _          => printAndExit(usage, 1)
+    case "-d" | "--duplex" => duplexAvailable = true
+    case "-q" | "--quiet"  => showTip = false
+    case _                 => printAndExit(usage, 1)
   }
 
   if duplexAvailable then {
@@ -28,9 +33,9 @@ def printAndExit(stuff: Any, exitCode: Int) =
     val (front, back) = nonDuplex(booklet)
     println(front.mkString(","))
     println(back.mkString(","))
-  }
 
-  if showTip then println(tip)
+    if showTip then println(tip)
+  }
 }
 
 def imposition(pagesAmount: Int): Iterator[Int] = {
