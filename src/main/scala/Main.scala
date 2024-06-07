@@ -1,14 +1,16 @@
 def tip = "Tip: "
 def usage = "Usage: pbook number-of-pages [--duplex] [--no-tip] [--help]"
-def usageAndExit(exitCode: Int) =
-  println(usage); sys.exit(exitCode)
+def printAndExit(stuff: Any, exitCode: Int) =
+  println(stuff); sys.exit(exitCode)
 
 //TODO tips as optional cmdline arguments
 // - page flip ascii images
 @main def main(args: String*): Unit = {
-  if args.isEmpty || args.head == "--help" then usageAndExit(0)
+  if args.isEmpty || args.head == "--help" then printAndExit(usage, 0)
 
-  val pagesAmount = args.head.toInt
+  val pagesAmount = args.head.toIntOption.getOrElse {
+    printAndExit(s"\"${args.head}\" is not a valid amount of pages", 1)
+  }
   val booklet = imposition(pagesAmount)
 
   var showTip = true
@@ -17,7 +19,7 @@ def usageAndExit(exitCode: Int) =
   args.drop(1).foreach {
     case "--duplex" => duplexAvailable = true
     case "--no-tip" => showTip = false
-    case _          => usageAndExit(1)
+    case _          => printAndExit(usage, 1)
   }
 
   if duplexAvailable then {
