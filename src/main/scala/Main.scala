@@ -1,11 +1,37 @@
-//TODO tips as optional cmdline arguments
-// - non-duplex printing: print odd first, then even
-// - page flip ascii images
-@main def main(pagesAmount: Int) =
-  val booklet = imposition(pagesAmount)
-  println(booklet.iterator.mkString(","))
+def tip = "Tip: "
+def usage = "Usage: pbook number-of-pages [--duplex] [--no-tip] [--help]"
+def usageAndExit(exitCode: Int) =
+  println(usage); sys.exit(exitCode)
 
-def imposition(pagesAmount: Int): IterableOnce[Int] = {
+//TODO tips as optional cmdline arguments
+// - page flip ascii images
+@main def main(args: String*): Unit = {
+  if args.isEmpty || args.head == "--help" then usageAndExit(0)
+
+  val pagesAmount = args.head.toInt
+  val booklet = imposition(pagesAmount)
+
+  var showTip = true
+  var duplexAvailable = false
+
+  args.drop(1).foreach {
+    case "--duplex" => duplexAvailable = true
+    case "--no-tip" => showTip = false
+    case _          => usageAndExit(1)
+  }
+
+  if duplexAvailable then {
+    println(booklet.mkString(","))
+  } else {
+    val (front, back) = nonDuplex(booklet)
+    println(front.mkString(","))
+    println(back.mkString(","))
+  }
+
+  if showTip then println(tip)
+}
+
+def imposition(pagesAmount: Int): Iterator[Int] = {
   // [1, 2, 3, 4, 5, 6, 7, 8]           =>
   // [(8, 1), (2, 7), (6, 3), (4, 5)]   =>
   // [(8, 1), (6, 3)], [(2, 7), (4, 5)]
@@ -15,5 +41,14 @@ def imposition(pagesAmount: Int): IterableOnce[Int] = {
       case 0                => p1 #:: LazyList.empty
       case _ if p1 % 2 == 1 => p2 #:: p1 #:: sheets(p1 + 1, p2 - 1)
       case _                => p1 #:: p2 #:: sheets(p1 + 1, p2 - 1)
-  sheets(1, pagesAmount)
+  sheets(1, pagesAmount).iterator
+}
+
+def nonDuplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
+  val (front, back) = printerSheets.iterator
+    .grouped(2)
+    .zipWithIndex
+    .partition(_._2 % 2 == 0)
+
+  (front.map(_._1).flatten, back.map(_._1).flatten)
 }
