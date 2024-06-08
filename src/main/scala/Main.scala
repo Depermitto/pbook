@@ -1,21 +1,21 @@
 def tip =
-  "Tip: Put the first row numbers in the print dialog. Print, then flip the pages and print the second time - this time the second row only."
+  "Tip: Put the first row in the print dialog. Print, then flip the pages and print the second time - this time the second row only."
 def usage =
-  """Usage: pbook number-of-pages [-d | --duplex] [-q | --quiet] [-h | --help]
-  duplex - non-duplex mode. Formats pages for printers without duplex printing method.
-  quiet  - do not show tips for non-duplex mode.
-  help   - display this page."""
+  """Usage: pbook <number-of-pages> [-d --duplex] [-q --quiet] [-h --help]
+  duplex  -   non-duplex mode. Formats pages for printers without duplex printing method.
+  quiet   -   do not show tips for non-duplex mode.
+  help    -   display this page."""
 def printAndExit(stuff: Any, exitCode: Int = 0) =
   println(stuff); sys.exit(exitCode)
 
 //TODO tips as optional cmdline arguments
 // - page flip ascii images
 @main def main(args: String*): Unit = {
-  if args.isEmpty || args.head.matches("-(-help|h).*") then printAndExit(usage)
+  if args.isEmpty || args.head.matches("-(-help|h){1}") then printAndExit(usage)
 
   val pagesAmount = args.head.toIntOption.getOrElse {
     printAndExit(s"\"${args.head}\" is not a valid amount of pages", 1)
-  }
+  } ensuring (_ >= 1, s"Amount of pages cannot be lower than 1")
   val booklet = imposition(pagesAmount)
 
   var showTip = true
@@ -34,7 +34,7 @@ def printAndExit(stuff: Any, exitCode: Int = 0) =
     println(front.mkString(","))
     println(back.mkString(","))
 
-    if showTip then println(tip)
+    if showTip then printf("\n%s\n", tip)
   }
 }
 
@@ -52,7 +52,7 @@ def imposition(pagesAmount: Int): Iterator[Int] = {
 }
 
 def nonDuplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
-  val (front, back) = printerSheets.iterator
+  val (front, back) = printerSheets
     .grouped(2)
     .zipWithIndex
     .partition(_._2 % 2 == 0)
