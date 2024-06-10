@@ -1,4 +1,4 @@
-class PrinterSheetsSuite extends munit.FunSuite {
+class PrinterSheetsDuplexSuite extends munit.FunSuite {
   def isDuplex(pagesAmount: Int, expected: String): Boolean = {
     val pages = imposition(pagesAmount).iterator
     pages.mkString(" ") == expected
