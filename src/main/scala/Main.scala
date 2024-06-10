@@ -1,47 +1,44 @@
-def tip =
-  "Tip: Put the first row in the print dialog. Print, then flip the pages and print the second time - this time the second row only."
-def usage =
-  """Usage: pbook <number-of-pages> [-d --duplex] [-q --quiet] [-h --help]
-  duplex  -   non-duplex mode. Formats pages for printers without duplex printing method.
-  quiet   -   do not show tips for non-duplex mode.
-  help    -   display this page."""
-def printAndExit(stuff: Any, exitCode: Int = 0) =
-  println(stuff); sys.exit(exitCode)
+import java.util.concurrent.Callable
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
+import java.io.File
+import picocli.CommandLine
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.Loader
 
-//TODO tips as optional cmdline arguments
-// - page flip ascii images
-@main def main(args: String*): Unit = {
-  if args.isEmpty || args.head.matches("-(-help|h){1}") then printAndExit(usage)
+@Command(
+  name = "pbook",
+  mixinStandardHelpOptions = true,
+  version = Array("pbook 0.1")
+)
+class PBook() extends Callable[Unit] {
+  @Parameters(paramLabel = "filename", index = "0")
+  private var _file: File = null
 
-  val pagesAmount = args.head.toIntOption.getOrElse {
-    printAndExit(s"\"${args.head}\" is not a valid amount of pages", 1)
-  } ensuring (_ >= 1, s"Amount of pages cannot be lower than 1")
-  val booklet = imposition(pagesAmount)
+  @Option(
+    names = Array("-o", "--output"),
+    description = Array("Specify custom path for the output pdf"),
+    paramLabel = "filename"
+  )
+  private var _outputFilename: String = "booklet.pdf"
 
-  var showTip = true
-  var duplexAvailable = false
+  override def call() = {
+    val origPages = Loader.loadPDF(_file).getPages()
+    val printerSheets = imposition(origPages.getCount)
 
-  args.drop(1).foreach {
-    case "-d" | "--duplex" => duplexAvailable = true
-    case "-q" | "--quiet"  => showTip = false
-    case _                 => printAndExit(usage, 1)
-  }
+    val doc = PDDocument()
+    printerSheets.foreach(pageNo => doc.addPage(origPages.get(pageNo - 1)))
 
-  if duplexAvailable then {
-    println(booklet.mkString(","))
-  } else {
-    val (front, back) = nonDuplex(booklet)
-    println(front.mkString(","))
-    println(back.mkString(","))
-
-    if showTip then printf("\n%s\n", tip)
+    // safe save
+    File(_outputFilename).delete
+    doc.save(_outputFilename)
   }
 }
 
 def imposition(pagesAmount: Int): Iterator[Int] = {
   // [1, 2, 3, 4, 5, 6, 7, 8]           =>
-  // [(8, 1), (2, 7), (6, 3), (4, 5)]   =>
-  // [(8, 1), (6, 3)], [(2, 7), (4, 5)]
+  // [(8, 1), (2, 7), (6, 3), (4, 5)]
   def sheets(p1: Int, p2: Int): LazyList[Int] =
     (p1 - p2) match
       case 1                => LazyList.empty
@@ -51,7 +48,10 @@ def imposition(pagesAmount: Int): Iterator[Int] = {
   sheets(1, pagesAmount).iterator
 }
 
-def nonDuplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
+@deprecated("no longer necessary as program now reorders pdf files directly")
+def simplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
+  // [(8, 1), (2, 7), (6, 3), (4, 5)]   =>
+  // [(8, 1), (6, 3)], [(2, 7), (4, 5)]
   val (front, back) = printerSheets
     .grouped(2)
     .zipWithIndex
@@ -59,3 +59,5 @@ def nonDuplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
 
   (front.map(_._1).flatten, back.map(_._1).flatten)
 }
+
+@main def Main(args: String*) = CommandLine(PBook()).execute(args*)
