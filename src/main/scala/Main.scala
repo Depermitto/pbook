@@ -1,46 +1,76 @@
 import java.util.concurrent.Callable
 import picocli.CommandLine.Command
-import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
 import picocli.CommandLine
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.Loader
 import java.nio.file.Path
+import java.io.File
 
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
-  version = Array("pbook 0.2")
+  version = Array("pbook 0.3")
 )
 class PBook() extends Callable[Int] {
   @Parameters(paramLabel = "filename", index = "0")
-  private var _file: Path = null
+  private var _filepath: Path = null
 
-  @Option(
-    names = Array("-o", "--output"),
-    description = Array("Specify custom path for the output pdf"),
-    paramLabel = "filename"
+  @picocli.CommandLine.Option(
+    names = Array("-d", "--duplex"),
+    description = Array(
+      "Reorder pages into a single pdf file for duplex-equipped printers"
+    ),
+    paramLabel = "isDuplex"
   )
-  private var _outputFilename: String = s"${_file}_booklet.pdf"
+  private var _isDuplex: Boolean = false
+
+  @picocli.CommandLine.Option(
+    names = Array("-n", "--name-preserve"),
+    description = Array(
+      "How much of original filename to preserve"
+    ),
+    paramLabel = "n"
+  )
+  private var _n: Int = 10
 
   override def call(): Int = {
-    val docFile = _file.toFile()
-    if !docFile.exists then {
-      println(s"\"$_file\" is not a valid file")
-      return 1
+    val origDoc = {
+      val docFile = _filepath.toFile()
+      if !docFile.exists then {
+        println(s"\"$_filepath\" is not a valid file")
+        return 1
+      }
+
+      Loader.loadPDF(docFile)
     }
+    val printerSheets = imposition(origDoc.getNumberOfPages)
 
-    val origPages = Loader.loadPDF(docFile).getPages()
-    val printerSheets = imposition(origPages.getCount)
+    if _isDuplex then
+      val doc = origDoc.copy(printerSheets)
+      doc.save(_filepath.getShortName(_n) + "_booklet.pdf")
+    else
+      val (frontPages, backPages) = simplex(printerSheets)
 
-    val doc = PDDocument()
-    printerSheets.foreach(pageNo => doc.addPage(origPages.get(pageNo - 1)))
+      val frontDoc = origDoc.copy(frontPages)
+      frontDoc.save(_filepath.getShortName(_n) + "_booklet_front.pdf")
 
-    // safe save
-    File(_outputFilename).delete
-    doc.save(_outputFilename)
+      val backDoc = origDoc.copy(backPages)
+      backDoc.save(_filepath.getShortName(_n) + "_booklet_back.pdf")
+
     0
   }
+
+  extension (srcDoc: PDDocument)
+    private def copy(pages: Iterator[Int]): PDDocument =
+      val doc = PDDocument()
+      pages.foreach(pageNo => doc.addPage(srcDoc.getPages.get(pageNo - 1)))
+
+      doc
+
+  extension (path: Path)
+    private def getShortName(n: Int): String =
+      path.getName(path.getNameCount - 1).toString.slice(0, n)
 }
 
 def imposition(pagesAmount: Int): Iterator[Int] = {
