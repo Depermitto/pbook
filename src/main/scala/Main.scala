@@ -2,29 +2,35 @@ import java.util.concurrent.Callable
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
-import java.io.File
 import picocli.CommandLine
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.Loader
+import java.nio.file.Path
 
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
   version = Array("pbook 0.2")
 )
-class PBook() extends Callable[Unit] {
+class PBook() extends Callable[Int] {
   @Parameters(paramLabel = "filename", index = "0")
-  private var _file: File = null
+  private var _file: Path = null
 
   @Option(
     names = Array("-o", "--output"),
     description = Array("Specify custom path for the output pdf"),
     paramLabel = "filename"
   )
-  private var _outputFilename: String = "booklet.pdf"
+  private var _outputFilename: String = s"${_file}_booklet.pdf"
 
-  override def call() = {
-    val origPages = Loader.loadPDF(_file).getPages()
+  override def call(): Int = {
+    val docFile = _file.toFile()
+    if !docFile.exists then {
+      println(s"\"$_file\" is not a valid file")
+      return 1
+    }
+
+    val origPages = Loader.loadPDF(docFile).getPages()
     val printerSheets = imposition(origPages.getCount)
 
     val doc = PDDocument()
@@ -33,6 +39,7 @@ class PBook() extends Callable[Unit] {
     // safe save
     File(_outputFilename).delete
     doc.save(_outputFilename)
+    0
   }
 }
 
@@ -48,7 +55,6 @@ def imposition(pagesAmount: Int): Iterator[Int] = {
   sheets(1, pagesAmount).iterator
 }
 
-@deprecated("no longer necessary as program now reorders pdf files directly")
 def simplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
   // [(8, 1), (2, 7), (6, 3), (4, 5)]   =>
   // [(8, 1), (6, 3)], [(2, 7), (4, 5)]
@@ -60,4 +66,4 @@ def simplex(printerSheets: Iterator[Int]): (Iterator[Int], Iterator[Int]) = {
   (front.map(_._1).flatten, back.map(_._1).flatten)
 }
 
-@main def Main(args: String*) = CommandLine(PBook()).execute(args*)
+@main def Main(args: String*): Int = CommandLine(PBook()).execute(args*)
