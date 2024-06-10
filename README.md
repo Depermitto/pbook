@@ -1,45 +1,26 @@
 # pbook
-> Requires java installed, developed using java 21
+> Requires java 8 or up installed
 
-Simple and feature limited commandline utility for booklet style printing. "Supports" duplex-capable, as well as non-duplex-capable printers.
+Simple and feature limited commandline utility for booklet style printing.
 
-Note: This software currently only produces correct printer sheets layout, e.g.
-- 8 pages duplex
-```
-8,1,2,7,6,3,4,5
-```
-- 8 pages non-duplex
-```
-8,1,6,3
-```
-```
-2,7,4,5
-```
-
-**pbook** is designed to be used in junction with some other printing solution, it does not reorganize pdfs 😢 (at least not yet).
+**pbook** is designed to be used in junction with some other printing solution. In short, it reorders pages to be in line with a booklet style print. To not mess up your print: **odd pages first, then even pages**
 
 ## Usage
-`java -jar pbook.jar <number-of-pages> [-d --duplex] [-q --quiet] [-h --help]`
+`java -jar pbook.jar pbook [-hV] [-o=filename] filename`
 
-- duplex  -   non-duplex mode. Formats pages for printers without duplex printing method.
-- quiet   -   do not show tips for non-duplex mode.
-- help    -   display this page.
+* -h, --help             -  Show this help message and exit.
+* -o, --output=filename  -  Specify custom path for the output pdf
+* -V, --version          -  Print version information and exit.
 
-## Example output
-`java -jar pbook.jar 26`
-```
-26,1,24,3,22,5,20,7,18,9,16,11,14,13
-```
-```
-2,25,4,23,6,21,8,19,10,17,12,15
-```
+## Example of usage
+`java -jar pbook.jar some-pdf-file.pdf --output my-output.pdf`
 
 # Installation
 There is no need to clone or compile anything, one can just grab a **jar** from the releases. Alternatively
 ```bash
 git clone gilab.com/Depermitto/pbook
 cd pbook
-sbt run ...
+sbt run [args...]
 ```
 
 # License

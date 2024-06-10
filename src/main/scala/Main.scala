@@ -10,7 +10,7 @@ import org.apache.pdfbox.Loader
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
-  version = Array("pbook 0.1")
+  version = Array("pbook 0.2")
 )
 class PBook() extends Callable[Unit] {
   @Parameters(paramLabel = "filename", index = "0")
