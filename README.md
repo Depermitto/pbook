@@ -7,7 +7,6 @@ Simple and feature limited commandline utility for booklet style printing.
 
 ## Usage
 `java -jar pbook.jar [-dhV] [-n=n] filename`
-*      filename
 *  -d, --duplex            Reorder pages into a single pdf file for duplex-equipped printers
 *  -h, --help              Show this help message and exit.
 *  -n, --name-preserve=n   How much of original filename to preserve
