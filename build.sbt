@@ -8,9 +8,9 @@ lazy val root = project
     assemblyJarName := "pbook.jar",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
-      "org.scalameta" %% "munit" % "1.0.0" % Test,
+      "org.scalameta" %% "munit" % "1.0.4" % Test,
       "info.picocli" % "picocli" % "4.7.6",
-      "org.apache.pdfbox" % "pdfbox" % "3.0.2"
+      "org.apache.pdfbox" % "pdfbox" % "3.0.3"
     ),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", _*) => MergeStrategy.discard

@@ -1,6 +1,6 @@
 class PrinterSheetsDuplexSuite extends munit.FunSuite {
   def isDuplex(pagesAmount: Int, expected: String): Boolean = {
-    val pages = imposition(pagesAmount).iterator
+    val pages = Sheets.imposition(pagesAmount).iterator
     pages.mkString(" ") == expected
   }
 

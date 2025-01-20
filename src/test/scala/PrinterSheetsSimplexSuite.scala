@@ -1,7 +1,7 @@
 class PrinterSheetsSimplexSuite extends munit.FunSuite {
   def isSimplex(pagesAmount: Int, expected: (String, String)): Boolean = {
-    val pages = imposition(pagesAmount).iterator
-    val (front, back) = simplex(pages)
+    val pages = Sheets.imposition(pagesAmount).iterator
+    val (front, back) = Sheets.simplex(pages)
     val (expectedFront, expectedBack) = expected
 
     front.mkString(" ") == expectedFront && back.mkString(" ") == expectedBack
