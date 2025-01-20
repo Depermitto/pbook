@@ -1,4 +1,3 @@
-import java.util.concurrent.Callable
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 import picocli.CommandLine.Option
@@ -6,8 +5,19 @@ import picocli.CommandLine
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.Loader
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.util.logging.Logger
+import java.util.logging.Level
+import java.util.concurrent.Callable
+import scala.util.Try
+import scala.util.Failure
+import scala.util.Success
 
-@main def Main(args: String*): Int = CommandLine(PBook()).execute(args*)
+@main def Main(args: String*): Int = {
+  Logger.getLogger("org.apache.pdfbox").setLevel(Level.OFF);
+  CommandLine(PBook()).execute(args*)
+}
 
 @Command(
   name = "pbook",
@@ -21,16 +31,24 @@ class PBook() extends Callable[Int] {
   @Option(
     names = Array("--duplex"),
     description = Array(
-      "Reorder pages into a single pdf file for duplex-equipped printers"
+      "Reorder pages into a single pdf file for double-sided printers"
     ),
     paramLabel = "isDuplex"
   )
   private var _isDuplex: Boolean = false
 
   override def call(): Int = {
-    val origDoc = Loader.loadPDF(_file)
-    val printerSheets = Sheets.imposition(origDoc.getNumberOfPages)
+    val origDoc = Try(Loader.loadPDF(_file)) match {
+      case _ if !_file.exists() =>
+        println(s"${_file.getName()} does not exist")
+        return 1
+      case Failure(ioe) =>
+        println(s"${_file.getName()} is not a PDF file")
+        return 1
+      case Success(pdfDoc) => pdfDoc
+    }
 
+    val printerSheets = Sheets.imposition(origDoc.getNumberOfPages)
     if (_isDuplex) {
       val doc = copyDoc(origDoc, printerSheets)
       doc.save(getNameAppend(_file, "booklet"))
