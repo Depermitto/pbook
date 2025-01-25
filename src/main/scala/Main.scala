@@ -22,7 +22,13 @@ import scala.util.Success
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
-  version = Array("pbook 0.4")
+  version = Array("pbook 0.4"),
+  footer = Array(
+    "How to use pbook:",
+    "1. Print xyz_booklet_front.pdf",
+    "2. Flip",
+    "3. Print xyz_booklet_back.pdf"
+  )
 )
 class PBook() extends Callable[Int] {
   @Parameters(paramLabel = "file", index = "0")
@@ -49,10 +55,10 @@ class PBook() extends Callable[Int] {
     }
 
     val printerSheets = Sheets.imposition(origDoc.getNumberOfPages)
-    if (_isDuplex) {
+    if _isDuplex then
       val doc = copyDoc(origDoc, printerSheets)
       doc.save(getNameAppend(_file, "booklet"))
-    } else {
+    else
       val (frontPages, backPages) = Sheets.simplex(printerSheets)
 
       val frontDoc = copyDoc(origDoc, frontPages)
@@ -60,7 +66,6 @@ class PBook() extends Callable[Int] {
 
       val backDoc = copyDoc(origDoc, backPages)
       backDoc.save(getNameAppend(_file, "booklet_back"))
-    }
     return 0
   }
 }
@@ -69,13 +74,11 @@ def getNameAppend(file: File, appendage: String): String = {
   val filename = file.getName()
   val extIndex = filename.lastIndexOf(".")
 
-  return if (extIndex == -1) {
-    filename + "_" + appendage
-  } else {
+  return if extIndex == -1 then filename + "_" + appendage
+  else
     val filenameNoExt = filename.substring(0, extIndex)
     val extWithDot = filename.substring(extIndex)
     filenameNoExt + "_" + appendage + extWithDot
-  }
 }
 
 def copyDoc(origDoc: PDDocument, pages: Iterator[Int]): PDDocument = {

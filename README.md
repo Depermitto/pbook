@@ -1,17 +1,16 @@
 # pbook
 > Requires java 8 or up installed
 
-Simple and feature limited commandline utility for booklet style printing.
-
-**pbook** is designed to be used in junction with some other printing solution. In short, it reorders pages to be in line with a booklet style print. To not mess up your print: **print xyz_booklet_front.pdf first -> flip -> then print xyz_booklet_back.pdf**
+Simple commandline utility for creating booklet-style PDFs. In short, **pbook** copies a PDF file and reorders the pages into a booklet-style.
 
 ## Usage
-`java -jar pbook.jar [-dhV] [-n=n] filename`
-*  -d, --duplex            Reorder pages into a single pdf file for duplex-equipped printers
-*  -h, --help              Show this help message and exit.
-*  -n, --name-preserve=n   How much of original filename to preserve
-*  -V, --version           Print version information and exit.
-
+```
+java -jar pbook.jar [-hV] [--duplex] file
+      file
+      --duplex    Reorder pages into a single pdf file for double-sided printers
+  -h, --help      Show this help message and exit.
+  -V, --version   Print version information and exit.
+```
 
 ## Example of usage
 `java -jar pbook.jar some-pdf-file.pdf`
@@ -22,7 +21,7 @@ There is no need to clone or compile anything, one can just grab a **jar** from 
 ```bash
 git clone gilab.com/Depermitto/pbook
 cd pbook
-sbt run [args...]
+sbt test assembly
 ```
 
 # License
