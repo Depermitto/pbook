@@ -22,7 +22,7 @@ import scala.util.Success
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
-  version = Array("pbook 0.3")
+  version = Array("pbook 0.4")
 )
 class PBook() extends Callable[Int] {
   @Parameters(paramLabel = "file", index = "0")

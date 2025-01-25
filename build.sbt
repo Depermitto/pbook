@@ -4,7 +4,7 @@ lazy val root = project
   .in(file("."))
   .settings(
     name := "pbook",
-    version := "0.3",
+    version := "0.4",
     assemblyJarName := "pbook.jar",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
