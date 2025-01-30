@@ -22,26 +22,20 @@ import scala.util.Success
 @Command(
   name = "pbook",
   mixinStandardHelpOptions = true,
-  version = Array("pbook 0.4"),
-  footer = Array(
-    "How to use pbook:",
-    "1. Print xyz_booklet_front.pdf",
-    "2. Flip",
-    "3. Print xyz_booklet_back.pdf"
-  )
+  version = Array("pbook 0.4")
 )
 class PBook() extends Callable[Int] {
   @Parameters(paramLabel = "file", index = "0")
   private var _file: File = null
 
   @Option(
-    names = Array("--duplex"),
+    names = Array("--split"),
     description = Array(
-      "Reorder pages into a single pdf file for double-sided printers"
+      "Split the booklet into two (front and back) PDF files."
     ),
-    paramLabel = "isDuplex"
+    paramLabel = "isSplit"
   )
-  private var _isDuplex: Boolean = false
+  private var _isSplit: Boolean = false
 
   override def call(): Int = {
     val origDoc = Try(Loader.loadPDF(_file)) match {
@@ -55,7 +49,7 @@ class PBook() extends Callable[Int] {
     }
 
     val printerSheets = Sheets.imposition(origDoc.getNumberOfPages)
-    if _isDuplex then
+    if !_isSplit then
       val doc = copyDoc(origDoc, printerSheets)
       doc.save(getNameAppend(_file, "booklet"))
     else
